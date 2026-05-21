@@ -1,0 +1,12 @@
+name: ec1
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - ruff
+  - polars>=0.20.0
+  - pip:
+      - python-dotenv
+      - -e .
+
