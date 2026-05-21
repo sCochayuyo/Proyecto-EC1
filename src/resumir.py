@@ -61,7 +61,7 @@ def resume_data(
         f"- Promedio de asistencia del curso: {avg_attendace:.2f}%.\n"
     )
 
-    with open(out_txt, "w") as f:
+    with open(out_txt, "w", encoding="utf-8") as f:
         f.write(resume)
 
 
