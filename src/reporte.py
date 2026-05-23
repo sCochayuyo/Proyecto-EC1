@@ -26,26 +26,12 @@ def generate_report(
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     imputed_df = df.filter(pl.col("tiene_faltantes"))
-    imputed_names = imputed_df["nombre"].to_list()
-    total_imputed = len(imputed_names)
+    total_imputed = imputed_df.height
 
     if total_imputed > 0:
-        name_str = ", ".join(imputed_names)
+        name_str = imputed_df.select(pl.col("nombre").implode().list.join(", ")).item()
     else:
         name_str = "Ninguno"
-
-    students_table_df = df.select(
-        [
-            "nombre",
-            "nota1",
-            "nota2",
-            "nota3",
-            "asistencia",
-            "promedio",
-            "aprobado",
-            "categoria",
-        ]
-    )
 
     markdown_table = (
         "| Nombre | Nota 1 | Nota 2 | Nota 3 | "
@@ -54,19 +40,43 @@ def generate_report(
         ":---: | :---: | :---: | :--- |\n"
     )
 
-    for row in students_table_df.iter_rows():
-        passed_str = "Si" if row[6] else "No"
-        markdown_table += (
-            f"| {row[0]} | {row[1]} | {row[2]} | "
-            f"{row[3]} | {row[4]}% | {row[5]:.2f} | "
-            f"{passed_str} | {row[7]} |\n"
-        )
+    df_markdown = df.with_columns(
+        pl.concat_str(
+            [
+                pl.lit("| "),
+                pl.col("nombre"),
+                pl.lit(" | "),
+                pl.col("nota1"),
+                pl.lit(" | "),
+                pl.col("nota2"),
+                pl.lit(" | "),
+                pl.col("nota3"),
+                pl.lit(" | "),
+                pl.col("asistencia").cast(pl.String),
+                pl.lit("% | "),
+                pl.col("promedio").round(2).cast(pl.String),
+                pl.lit(" | "),
+                pl.col("aprobado").cast(pl.String),
+                pl.lit(" | "),
+                pl.col("categoria"),
+                pl.lit(" |\n"),
+            ]
+        ).alias("md_row")
+    )
+
+    markdown_body = (
+        df_markdown.select(pl.col("md_row").implode().list.join("")).item()
+        if df_markdown.height > 0
+        else ""
+    )
+
+    markdown = markdown_table + markdown_body
 
     md_report = (
         "# Reporte final\n\n"
         f"**Fecha de generación:** {current_date}\n\n"
         "## 1. Tabla markdown con estudiantes y sus resultados\n\n"
-        f"{markdown_table}\n\n"
+        f"{markdown}\n\n"
         "## 2. Contenido íntegro del resumen estadístico\n\n"
         f"{resume_txt}\n\n"
         "## 3. Observaciones sobre datos imputados\n\n"

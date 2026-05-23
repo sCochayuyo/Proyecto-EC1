@@ -94,6 +94,8 @@ clean:
 	-@del /s /q *.pyo >nul 2>&1
 	-@for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" >nul 2>&1
 
+	@echo "Archivos borrados con exito!"
+
 .PHONY: status
 status:
 	@echo  ------ ESTADO DE PIPELINE ------

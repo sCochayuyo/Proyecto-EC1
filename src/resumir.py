@@ -41,9 +41,11 @@ def resume_data(
         pl.col("asistencia").mean(),
     ).item()
 
-    count = df.group_by("categoria").len().to_dicts()
+    honors = df.filter(pl.col("categoria") == "Destacado").height
 
-    category_count = {d["categoria"]: d["len"] for d in count}
+    passed = df.filter(pl.col("categoria") == "Aprobado").height
+
+    failed = df.filter(pl.col("categoria") == "Reprobado").height
 
     resume = (
         "Resumen estadístico\n"
@@ -53,11 +55,9 @@ def resume_data(
         f"- Nota Mínima: {min_grade:.2f}.\n"
         f"- Nota Máxima: {max_grade:.2f}.\n"
         f"- Porcentaje de estudiantes aprobados: {pass_rate:.2f}%.\n"
-        f"- Conteo categoría Destacado: "
-        f"{category_count.get('Destacado', 0)}.\n"
-        f"- Conteo categoría Aprobado: {category_count.get('Aprobado', 0)}.\n"
-        "- Conteo categoría Reprobado: "
-        f"{category_count.get('Reprobado', 0)}.\n"
+        f"- Conteo categoría Destacado: {honors}.\n "
+        f"- Conteo categoría Aprobado: {passed}.\n"
+        f"- Conteo categoría Reprobado: {failed}.\n"
         f"- Promedio de asistencia del curso: {avg_attendace:.2f}%.\n"
     )
 
